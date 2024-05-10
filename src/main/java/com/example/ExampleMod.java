@@ -2,21 +2,36 @@ package com.example;
 
 import net.fabricmc.api.ModInitializer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.fabricmc.fabric.api.event.registry.DynamicRegistries;
+import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.minecraft.component.DataComponentType;
+import net.minecraft.enchantment.Enchantments;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Identifier;
+
+import java.util.Map;
 
 public class ExampleMod implements ModInitializer {
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
-    public static final Logger LOGGER = LoggerFactory.getLogger("modid");
+	public static final RegistryKey<Registry<ExampleRecord>> RECORD_REGISTRY_KEY = RegistryKey.ofRegistry(new Identifier("example", "record"));
+	public static final RegistryKey<ExampleRecord> BOOGLY = RegistryKey.of(RECORD_REGISTRY_KEY, new Identifier("example", "boogly"));
+	public static final DataComponentType<ExampleComponent> RECORD_COMPONENT = DataComponentType.<ExampleComponent>builder()
+			.codec(ExampleComponent.CODEC)
+			.packetCodec(ExampleComponent.PACKET_CODEC)
+			.build();
+	public static final Item ITEM = Registry.register(Registries.ITEM, new Identifier("example", "item"), new Item(new Item.Settings().maxCount(1)));
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
-
-		LOGGER.info("Hello Fabric world!");
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(entries -> {
+			ItemStack stack = new ItemStack(ITEM);
+			stack.set(RECORD_COMPONENT, new ExampleComponent(Map.of(entries.getContext().lookup().createRegistryLookup().getOrThrow(RECORD_REGISTRY_KEY).getOrThrow(BOOGLY), Enchantments.AQUA_AFFINITY.getRegistryEntry())));
+			entries.add(stack);
+		});
+		DynamicRegistries.registerSynced(RECORD_REGISTRY_KEY, ExampleRecord.CODEC);
 	}
 }
