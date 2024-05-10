@@ -30,6 +30,7 @@ public class ExampleMod implements ModInitializer {
 			stack.set(RECORD_COMPONENT, entries.getContext().lookup().createRegistryLookup().getOrThrow(RECORD_REGISTRY_KEY).getOrThrow(BOOGLY));
 			entries.add(stack);
 		});
+		Registry.register(Registries.DATA_COMPONENT_TYPE, new Identifier("example", "component"), RECORD_COMPONENT);
 		DynamicRegistries.registerSynced(RECORD_REGISTRY_KEY, ExampleRecord.DIRECT_CODEC);
 	}
 }
